@@ -1,0 +1,39 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: reporting-postgres
+
+    environment:
+      POSTGRES_DB: reporting_db
+      POSTGRES_USER: reporting_user
+      POSTGRES_PASSWORD: reporting_password
+
+    ports:
+      - "5435:5432"
+
+    volumes:
+      - reporting_postgres_data:/var/lib/postgresql/data
+
+  reporting-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: reporting-service
+
+    depends_on:
+      - postgres
+
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/reporting_db
+      DB_USERNAME: reporting_user
+      DB_PASSWORD: reporting_password
+
+      KAFKA_BOOTSTRAP_SERVERS: host.docker.internal:9092
+
+    ports:
+      - "8086:8086"
+
+volumes:
+  reporting_postgres_data:
