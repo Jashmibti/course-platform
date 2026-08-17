@@ -3,8 +3,13 @@ package com.learningplatform.reporting.controller;
 import com.learningplatform.reporting.service.ReportingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.learningplatform.reporting.dto.CompletionRateResponse;
+import com.learningplatform.reporting.dto.PopularCourseResponse;
+import com.learningplatform.reporting.dto.UserActivityResponse;
 
 import java.util.Map;
 
@@ -48,5 +53,19 @@ public class ReportingController {
                 "totalCompletions",
                 service.totalCompletions()
         );
+    }
+    @GetMapping("/popular-course")
+    public PopularCourseResponse popularCourse() {
+        return service.mostPopularCourse();
+    }
+    @GetMapping("/completion-rate")
+    public CompletionRateResponse completionRate() {
+        return service.completionRate();
+    }
+    @GetMapping("/user-activity/{userId}")
+    public UserActivityResponse userActivity(
+            @PathVariable Long userId
+    ) {
+        return service.userActivity(userId);
     }
 }
