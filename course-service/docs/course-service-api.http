@@ -1,0 +1,42 @@
+### Health
+GET http://localhost:8082/actuator/health
+
+### Search courses
+GET http://localhost:8082/api/v1/courses/search?keyword=kubernetes&page=0&size=20
+
+### Create course
+POST http://localhost:8082/api/v1/courses
+Authorization: Bearer <JWT_WITH_ADMIN_OR_INSTRUCTOR_ROLE>
+Content-Type: application/json
+
+{
+  "title": "Kubernetes Masterclass",
+  "description": "Complete K8s training",
+  "category": "devops",
+  "level": "ADVANCED",
+  "tags": ["kubernetes", "docker", "devops"]
+}
+
+### Add module
+POST http://localhost:8082/api/v1/courses/1/modules
+Authorization: Bearer <JWT_WITH_ADMIN_OR_INSTRUCTOR_ROLE>
+Content-Type: application/json
+
+{
+  "title": "Introduction",
+  "sequence": 1
+}
+
+### Add lesson
+POST http://localhost:8082/api/v1/courses/modules/1/lessons
+Authorization: Bearer <JWT_WITH_ADMIN_OR_INSTRUCTOR_ROLE>
+Content-Type: application/json
+
+{
+  "title": "Introduction to Kubernetes",
+  "videoUrl": "",
+  "duration": 25
+}
+
+### Get course
+GET http://localhost:8082/api/v1/courses/1

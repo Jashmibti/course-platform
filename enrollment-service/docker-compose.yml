@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: enrollment-postgres
+    environment:
+      POSTGRES_DB: enrollment_db
+      POSTGRES_USER: enrollment_user
+      POSTGRES_PASSWORD: enrollment_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - enrollment_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U enrollment_user -d enrollment_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - learning-network
+
+  enrollment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: enrollment-service
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/enrollment_db
+      DB_USERNAME: enrollment_user
+      DB_PASSWORD: enrollment_password
+      KAFKA_BOOTSTRAP_SERVERS: host.docker.internal:9092
+      SERVER_PORT: 8083
+
+    ports:
+      - "8083:8083"
+
+    networks:
+      - learning-network
+
+volumes:
+  enrollment_postgres_data:
+
+networks:
+  learning-network:
+    driver: bridge

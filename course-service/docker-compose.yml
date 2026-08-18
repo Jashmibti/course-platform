@@ -1,0 +1,131 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: learning-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-course_db}
+      POSTGRES_USER: ${POSTGRES_USER:-course_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-course_password}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-course_user} -d ${POSTGRES_DB:-course_db}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - learning-network
+
+  kafka:
+    image: apache/kafka:4.0.0
+    container_name: learning-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:29093
+
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:29093
+
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:9092
+
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+    networks:
+      - learning-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: learning-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - learning-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: learning-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - learning-network
+
+  course-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: course-service
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      minio:
+        condition: service_started
+      redis:
+        condition: service_started
+
+    environment:
+      SERVER_PORT: 8082
+
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-course_db}
+      DB_USERNAME: ${POSTGRES_USER:-course_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-course_password}
+
+      KAFKA_BOOTSTRAP_SERVERS: host.docker.internal:9092
+
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-course-videos}
+
+      JWT_SECRET: mySecretKeyForJwtAuthentication123456789
+
+      CACHE_TYPE: simple
+
+    ports:
+      - "8082:8082"
+
+    networks:
+      - learning-network
+
+volumes:
+  postgres_data:
+  kafka_data:
+  minio_data:
+  redis_data:
+
+networks:
+  learning-network:
+    driver: bridge
