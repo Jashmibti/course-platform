@@ -37,3 +37,4 @@ services:
 
 volumes:
   reporting_postgres_data:
+  

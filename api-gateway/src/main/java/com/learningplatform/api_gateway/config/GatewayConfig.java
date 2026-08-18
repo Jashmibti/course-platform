@@ -15,19 +15,19 @@ public class GatewayConfig {
 
                 .route("reporting-service",
                         r -> r.path("/api/reports/**")
-                                .uri("http://host.docker.internal:8086"))
+                                .uri("http://reporting-service:8086"))
 
                 .route("user-service",
                         r -> r.path("/api/users/**")
-                                .uri("http://host.docker.internal:8085"))
+                                .uri("http://user-service:8080"))
 
                 .route("course-service",
                         r -> r.path("/api/v1/courses/**")
-                                .uri("http://host.docker.internal:8082"))
+                                .uri("http://course-service:8082"))
 
                 .route("enrollment-service",
                         r -> r.path("/api/v1/enrollments/**")
-                                .uri("http://host.docker.internal:8083"))
+                                .uri("http://enrollment-service:8083"))
 
                 .build();
     }

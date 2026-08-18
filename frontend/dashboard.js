@@ -1,0 +1,1 @@
+const API='http://localhost:8090'; fetch(API+'/api/reports/courses/count').then(r=>r.json()).then(d=>courses.innerText=d.totalCourses||0); fetch(API+'/api/reports/enrollments/count').then(r=>r.json()).then(d=>enrollments.innerText=d.totalEnrollments||0); fetch(API+'/api/reports/completions/count').then(r=>r.json()).then(d=>completions.innerText=d.totalCompletions||0);
