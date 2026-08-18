@@ -1,0 +1,36 @@
+services:
+  postgres-userdb:
+    image: postgres:17
+    container_name: postgres-userdb
+
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+    ports:
+      - "5436:5432"
+
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
+
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: user-service
+
+    depends_on:
+      - postgres-userdb
+
+    environment:
+      DB_URL: jdbc:postgresql://postgres-userdb:5432/userdb
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+
+    ports:
+      - "8085:8080"
+
+volumes:
+  user_postgres_data:
